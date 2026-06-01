@@ -1,6 +1,8 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
+from api.services.Report_Excel.Hastag import export_hastag_report
+
 from .viewsets import (
     CustomerViewSet,
     CategoryViewSet,
@@ -27,5 +29,10 @@ urlpatterns = [
     path('', include(router.urls)),
     path('login/', login_view),
     path('create-user/', create_user),
+    path(
+        "reports/hastag/",
+        export_hastag_report,
+        name="hastag-report",
+    ),
 
 ]
