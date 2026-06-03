@@ -18,10 +18,14 @@ class CategorySerializer(serializers.ModelSerializer):
 
 # ================= VARIANT =================
 class ItemVariantSerializer(serializers.ModelSerializer):
+    item_name = serializers.CharField(
+        source="item.item_name",
+        read_only=True
+    )
+
     class Meta:
         model = ItemVariant
         fields = "__all__"
-
 
 # ================= ITEM =================
 class ItemSerializer(serializers.ModelSerializer):
@@ -46,15 +50,29 @@ class CouponSerializer(serializers.ModelSerializer):
 
 # ================= ORDER ITEM READ =================
 class OrderItemSerializer(serializers.ModelSerializer):
-
     item_name = serializers.CharField(
         source="variant.item.item_name",
         read_only=True
     )
 
+    size = serializers.CharField(
+        source="variant.size",
+        read_only=True
+    )
+
+    sku = serializers.CharField(
+        source="variant.sku",
+        read_only=True
+    )
+
+    total_price = serializers.SerializerMethodField()
+
     class Meta:
         model = OrderItem
         fields = "__all__"
+
+    def get_total_price(self, obj):
+        return obj.total_price()
 
 
 # ================= ORDER ITEM WRITE =================
@@ -75,33 +93,54 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "customer",
+            "salesperson",
             "delivery_charge",
             "paid_amount",
             "coupon",
             "items",
+            "remark"
         ]
 
     def create(self, validated_data):
         return OrderService.create_order(validated_data)
 
+# ================= SALES PERSON =================
+class SalesPersonSerializer(serializers.ModelSerializer):
+    total_orders = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SalesPerson
+        fields = "__all__"
+
+    def get_total_orders(self, obj):
+        return obj.orders.count()
 
 # ================= ORDER READ =================
 class OrderReadSerializer(serializers.ModelSerializer):
-
+    
     customer = CustomerSerializer(read_only=True)
+
+    salesperson = SalesPersonSerializer(read_only=True)
 
     items = OrderItemSerializer(
         many=True,
         read_only=True
     )
 
+    total_amount = serializers.SerializerMethodField()
+    discount_amount = serializers.SerializerMethodField()
+    final_amount = serializers.SerializerMethodField()
+
     class Meta:
         model = Order
         fields = "__all__"
 
+    def get_total_amount(self, obj):
+        return obj.total_amount()
 
-# ================= SALES PERSON =================
-class SalesPersonSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SalesPerson
-        fields = "__all__"
+    def get_discount_amount(self, obj):
+        return obj.discount_amount()
+
+    def get_final_amount(self, obj):
+        return obj.final_amount()
+

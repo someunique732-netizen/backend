@@ -24,8 +24,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-#CORS_ALLOWED_ORIGINS = [
- #    "https://your-frontend-domain.com",]
+CORS_ALLOWED_ORIGINS = [
+    "https://frontend-r0u4.onrender.com",]
 
 STORAGES = {
     "default": {

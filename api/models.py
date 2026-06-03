@@ -50,7 +50,7 @@ class ItemVariant(models.Model):
     design = models.CharField(max_length=50)
     stock = models.IntegerField(default=0)
     sku = models.CharField(max_length=50, unique=True)
-    barcode = models.CharField(max_length=50, unique=True)
+    barcode = models.CharField(max_length=50, unique=True,db_index=True)
 
     def __str__(self):
         return f"{self.item.item_name} - {self.size}"
@@ -73,9 +73,11 @@ class Coupon(models.Model):
 # 🧾 ORDER
 class Order(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="orders")
+    salesperson = models.ForeignKey('SalesPerson',on_delete=models.SET_NULL,null=True,blank=True,related_name='orders')
     coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
     delivery_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    remark = models.TextField(blank=True, null=True)
     order_date = models.DateTimeField(auto_now_add=True)
 
     def total_amount(self):
