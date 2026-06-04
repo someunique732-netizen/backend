@@ -21,14 +21,14 @@ def create_user(request):
         password = data.get("password")
 
         if not username or not password:
-            return JsonResponse(
-                {"error": "username and password required"},
-                status=400
-            )
+            return JsonResponse({
+            "success": False,
+            "message": "username and password required"
+            }, status=400)
 
         if User.objects.filter(username=username).exists():
             return JsonResponse(
-                {"error": "user already exists"},
+                {"success": False, "message": "user already exists"},
                 status=400
             )
 
@@ -38,6 +38,7 @@ def create_user(request):
         )
 
         return JsonResponse({
+            "success": True,
             "message": "user created successfully"
         })
 
@@ -46,58 +47,22 @@ def create_user(request):
         status=405
     )
 
-# ================= VIEWSETS =================
-
-class CustomerViewSet(ModelViewSet):
-    queryset = Customer.objects.all().order_by('-id')
-    serializer_class = CustomerSerializer
-
-
-class CategoryViewSet(ModelViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-
-
-class ItemViewSet(ModelViewSet):
-    queryset = Item.objects.all()
-    serializer_class = ItemSerializer
-
-
-class ItemVariantViewSet(ModelViewSet):
-    queryset = ItemVariant.objects.all()
-    serializer_class = ItemVariantSerializer
-
-
-class CouponViewSet(ModelViewSet):
-    queryset = Coupon.objects.all()
-    serializer_class = CouponSerializer
-
-
-class OrderViewSet(ModelViewSet):
-    queryset = Order.objects.all().order_by('-id')
-
-    def get_serializer_class(self):
-        if self.action in ['list', 'retrieve']:
-            return OrderReadSerializer
-        return OrderSerializer
-
-
-class SalesPersonViewSet(ModelViewSet):
-    queryset = SalesPerson.objects.all()
-    serializer_class = SalesPersonSerializer
-
-
 # ================= AUTH =================
 
 @csrf_exempt
 def login_view(request):
     if request.method == "POST":
+
         data = json.loads(request.body)
+
+        print("LOGIN DATA:", data)
 
         user = authenticate(
             username=data.get("username"),
             password=data.get("password")
         )
+
+        print("USER:", user)
 
         if user:
             refresh = RefreshToken.for_user(user)
@@ -106,4 +71,7 @@ def login_view(request):
                 "refresh": str(refresh),
             })
 
-        return JsonResponse({"error": "invalid"}, status=400)
+        return JsonResponse(
+            {"success": False, "message": "invalid credentials"},
+            status=400
+        )
