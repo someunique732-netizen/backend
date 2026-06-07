@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 🔐 SECURITY
 SECRET_KEY = 'django-insecure-3ozw%r2pqxqg3-x^$)u8o&ei1rme)k8%ymyv@wcq'
-DEBUG = os.environ.get("DEBUG", "False") == "True"
+DEBUG =  "True"
 
 ALLOWED_HOSTS = ['*']
 
@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_filters',
 
     # third-party
     "rest_framework_simplejwt",
@@ -110,8 +111,11 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',
     ),
-
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend'
+    ]
 }
+
 
 
 # 🔑 SIMPLE JWT
