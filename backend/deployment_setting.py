@@ -27,6 +27,9 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "https://frontend-r0u4.onrender.com",]
 
+
+
+
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
