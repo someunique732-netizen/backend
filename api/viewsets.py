@@ -1,3 +1,5 @@
+from urllib import request
+
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -93,6 +95,17 @@ class OrderViewSet(ModelViewSet):
         'salesperson__full_name',
         'remark',
     ]
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        print("DATA =", request.data)
+
+        if not serializer.is_valid():
+            print("ERRORS =", serializer.errors)
+            return Response(serializer.errors, status=400)
+
+        serializer.save()
+        return Response(serializer.data, status=201)
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:

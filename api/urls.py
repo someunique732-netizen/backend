@@ -13,7 +13,7 @@ from .viewsets import (
     SalesPersonViewSet
 )
 
-from .views import login_view, create_user
+from .views import login_view, create_user , dashboard, monthly_revenue
 
 router = DefaultRouter()
 
@@ -34,5 +34,7 @@ urlpatterns = [
         export_hastag_report,
         name="hastag-report",
     ),
+    path("dashboard/", dashboard),
+    path("monthly-revenue/", monthly_revenue)
 
 ]

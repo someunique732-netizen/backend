@@ -33,14 +33,20 @@ class ItemSerializer(serializers.ModelSerializer):
     variants = ItemVariantSerializer(many=True, read_only=True)
     stock = serializers.SerializerMethodField()
 
+    category_name = serializers.CharField(
+        source="category.category_name",
+        read_only=True
+    )
+
     class Meta:
         model = Item
         fields = "__all__"
 
     def get_stock(self, obj):
-        return obj.variants.aggregate(total=Sum("stock"))["total"] or 0
-
-
+        return obj.variants.aggregate(
+            total=Sum("stock")
+        )["total"] or 0
+    
 # ================= COUPON =================
 class CouponSerializer(serializers.ModelSerializer):
     class Meta:

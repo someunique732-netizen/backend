@@ -22,20 +22,22 @@ class OrderService:
 
         for i in items:
 
-            item = Item.objects.get(id=i['item'])
+            variant = i["variant"]
 
-            if item.stock < i['quantity']:
-                raise Exception("Not enough stock")
+            if variant.stock < i["quantity"]:
+                raise Exception(
+                    f"Not enough stock for {variant.sku}"
+                )
 
-            item.stock -= i['quantity']
-            item.save()
+            variant.stock -= i["quantity"]
+            variant.save()
 
             order_items.append(
                 OrderItem(
                     order=order,
-                    item=item,
-                    quantity=i['quantity'],
-                    price=item.selling_price
+                    variant=variant,
+                    quantity=i["quantity"],
+                    price=variant.item.selling_price
                 )
             )
 

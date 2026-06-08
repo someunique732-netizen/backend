@@ -64,9 +64,9 @@ def export_hastag_report(request):
             customer.address,
             customer.phone1,
             customer.phone2 or "",
-            float(order.cod_amount()),
-            customer.remark or "",
-            getattr(order, "delivery_type", ""),
+            float(order.final_amount()),
+            order.remark or "Do Not Open",
+            getattr(order, "delivery_method", ""),
             float(order.paid_amount),
         ])
 

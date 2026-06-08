@@ -75,6 +75,16 @@ class Order(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="orders")
     salesperson = models.ForeignKey('SalesPerson',on_delete=models.SET_NULL,null=True,blank=True,related_name='orders')
     coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
+    DELIVERY_CHOICES = [
+        ("Door2Door", "Door to Door"),
+        ("Door2Branch", "Door to Branch"),
+    ]
+
+    delivery_method = models.CharField(
+        max_length=20,
+        choices=DELIVERY_CHOICES,
+        default="Door2Door"
+    )
     delivery_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     remark = models.TextField(blank=True, null=True)

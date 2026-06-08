@@ -1,5 +1,10 @@
 from django.db import transaction
-from ..models import Order, OrderItem, Item
+
+from api.models import (
+    Order,
+    OrderItem,
+    ItemVariant,
+)
 
 
 class OrderService:
@@ -8,37 +13,52 @@ class OrderService:
     @transaction.atomic
     def create_order(validated_data):
 
-        customer = validated_data['customer']
-        items = validated_data['items']
+        customer = validated_data["customer"]
+        items = validated_data["items"]
 
         order = Order.objects.create(
             customer=customer,
-            delivery_charge=validated_data.get('delivery_charge', 0),
-            paid_amount=validated_data.get('paid_amount', 0),
-            coupon=validated_data.get('coupon', None)
+            delivery_charge=validated_data.get(
+                "delivery_charge",
+                0
+            ),
+            paid_amount=validated_data.get(
+                "paid_amount",
+                0
+            ),
+            coupon=validated_data.get(
+                "coupon",
+                None
+            ),
         )
 
         order_items = []
 
         for i in items:
 
-            item = Item.objects.get(id=i['item'])
+            variant = ItemVariant.objects.get(
+                id=i["variant"].id
+            )
 
-            if item.stock < i['quantity']:
-                raise Exception("Not enough stock")
+            if variant.stock < i["quantity"]:
+                raise Exception(
+                    f"Not enough stock for {variant.sku}"
+                )
 
-            item.stock -= i['quantity']
-            item.save()
+            variant.stock -= i["quantity"]
+            variant.save()
 
             order_items.append(
                 OrderItem(
                     order=order,
-                    item=item,
-                    quantity=i['quantity'],
-                    price=item.selling_price
+                    variant=variant,
+                    quantity=i["quantity"],
+                    price=variant.item.selling_price,
                 )
             )
 
-        OrderItem.objects.bulk_create(order_items)
+        OrderItem.objects.bulk_create(
+            order_items
+        )
 
         return order
