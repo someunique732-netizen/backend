@@ -9,6 +9,19 @@ class CustomerSerializer(serializers.ModelSerializer):
         model = Customer
         fields = "__all__"
 
+    def validate_phone1(self, value):
+        qs = Customer.objects.filter(phone1=value)
+
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
+            raise serializers.ValidationError(
+                "Customer with this phone number already exists."
+            )
+
+        return value
+
 
 # ================= CATEGORY =================
 class CategorySerializer(serializers.ModelSerializer):

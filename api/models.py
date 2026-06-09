@@ -8,7 +8,7 @@ class Customer(models.Model):
     customer_name = models.CharField(max_length=100)
     address = models.CharField(max_length=255)
     municipality = models.CharField(max_length=100)
-    phone1 = models.CharField(max_length=10)
+    phone1 = models.CharField(max_length=10,unique=True,db_index=True)
     phone2 = models.CharField(max_length=10, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

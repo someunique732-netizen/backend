@@ -24,6 +24,22 @@ class CustomerViewSet(ModelViewSet):
         'phone2',
     ]
 
+    queryset = Customer.objects.all().order_by('-id')
+    serializer_class = CustomerSerializer
+
+    @action(detail=False, methods=['get'])
+    def check_phone(self, request):
+
+        phone = request.GET.get("phone")
+
+        exists = Customer.objects.filter(
+            phone1=phone
+        ).exists()
+
+        return Response({
+            "exists": exists
+        })
+
 
 # ================= CATEGORY =================
 class CategoryViewSet(ModelViewSet):
