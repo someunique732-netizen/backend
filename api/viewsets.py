@@ -51,6 +51,8 @@ class CategoryViewSet(ModelViewSet):
 
 
 # ================= ITEM =================
+import json
+
 class ItemViewSet(ModelViewSet):
     queryset = Item.objects.select_related(
         'category'
@@ -61,6 +63,42 @@ class ItemViewSet(ModelViewSet):
     filter_backends = [SearchFilter]
     search_fields = ['item_name']
 
+    def create(self, request, *args, **kwargs):
+
+        print("DATA =", request.data)
+
+        item = Item.objects.create(
+            item_name=request.data.get("item_name"),
+            category_id=request.data.get("category_id"),
+            cost_price=request.data.get("cost_price"),
+            selling_price=request.data.get("selling_price"),
+            market_price=request.data.get("market_price"),
+            image=request.FILES.get("image")
+        )
+
+        variants = json.loads(
+            request.data.get("variants", "[]")
+        )
+
+        print("VARIANTS =", variants)
+
+        for v in variants:
+
+            ItemVariant.objects.create(
+                item=item,
+                size=v.get("size", ""),
+                design=v.get("design", ""),
+                sku=v.get("sku", ""),
+                barcode=v.get("barcode", ""),
+                stock=int(v.get("stock") or 0)
+            )
+
+        serializer = ItemSerializer(item)
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED
+        )
 
 # ================= VARIANT =================
 class ItemVariantViewSet(ModelViewSet):
