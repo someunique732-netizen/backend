@@ -112,6 +112,7 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "customer",
+            "status",
             "salesperson",
             "delivery_charge",
             "paid_amount",

@@ -196,6 +196,84 @@ class OrderViewSet(ModelViewSet):
             "total_sales": total_sales,
         })
 
+    @action(detail=True, methods=['patch'])
+    def mark_packed(self, request, pk=None):
+        order = self.get_object()
+
+        order.status = "packed"
+        order.save()
+
+        return Response({
+            "success": True,
+            "status": order.status
+        })
+
+    @action(detail=True, methods=["get"])
+    def bill(self, request, pk=None):
+
+        order = self.get_object()
+
+        company = Company.objects.first()
+
+        items = []
+
+        for item in order.items.all():
+            items.append({
+                "item_name": item.variant.item.item_name,
+                "size": item.variant.size,
+                "design": item.variant.design,
+                "qty": item.quantity,
+                "rate": item.price,
+                "total": item.total_price(),
+            })
+
+        data = {
+            "invoice_no": f"INV-{order.id:06d}",
+
+            "date": order.order_date.strftime("%Y-%m-%d"),
+            "time": order.order_date.strftime("%I:%M %p"),
+
+            "status": order.status,
+            "delivery_method": order.delivery_method,
+
+            "company": {
+                "company_name": company.company_name if company else "",
+                "address": company.address if company else "",
+                "phone": company.phone if company else "",
+                "email": company.email if company else "",
+                "logo": company.logo.url if company and company.logo else "",
+                "qr_code": company.qr_code.url if company and company.qr_code else "",
+            },
+
+            "customer": {
+                "name": order.customer.customer_name,
+                "phone": order.customer.phone1,
+                "address": order.customer.address,
+                "municipality": order.customer.municipality,
+            },
+
+            "salesperson": {
+                "name": order.salesperson.full_name
+            } if order.salesperson else None,
+
+            "items": items,
+
+            "summary": {
+                "subtotal": order.total_amount(),
+                "discount": order.discount_amount(),
+                "delivery_charge": order.delivery_charge,
+                "advance_paid": order.paid_amount,
+
+                "grand_total":
+                    order.total_amount()
+                    - order.discount_amount()
+                    + order.delivery_charge,
+
+                "due_amount": order.final_amount(),
+            }
+        }
+
+        return Response(data)
 
 # ================= SALES PERSON =================
 class SalesPersonViewSet(ModelViewSet):

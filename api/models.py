@@ -85,6 +85,16 @@ class Order(models.Model):
         choices=DELIVERY_CHOICES,
         default="Door2Door"
     )
+    STATUS_CHOICES = (
+        ("pending", "Pending"),
+        ("packed", "Packed"),
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="pending"
+    )
     delivery_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     remark = models.TextField(blank=True, null=True)
@@ -133,3 +143,34 @@ class SalesPerson(models.Model):
 
     def __str__(self):
         return self.full_name
+
+# Company Info 
+class Company(models.Model):
+    company_name = models.CharField(max_length=200)
+
+    logo = models.ImageField(
+        upload_to="company/",
+        null=True,
+        blank=True
+    )
+
+    phone = models.CharField(max_length=20)
+
+    email = models.EmailField(
+        blank=True,
+        null=True
+    )
+
+    qr_code = models.ImageField(
+        upload_to="qr/",
+        blank=True,
+        null=True
+    )
+
+    address = models.TextField()
+
+    website = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True
+    )
