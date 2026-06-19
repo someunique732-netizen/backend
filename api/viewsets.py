@@ -24,9 +24,6 @@ class CustomerViewSet(ModelViewSet):
         'phone2',
     ]
 
-    queryset = Customer.objects.all().order_by('-id')
-    serializer_class = CustomerSerializer
-
     @action(detail=False, methods=['get'])
     def check_phone(self, request):
 
@@ -242,6 +239,7 @@ class OrderViewSet(ModelViewSet):
                 "phone": company.phone if company else "",
                 "email": company.email if company else "",
                 "logo": company.logo.url if company and company.logo else "",
+                "website": company.website if company else "",
                 "qr_code": company.qr_code.url if company and company.qr_code else "",
             },
 
@@ -286,3 +284,10 @@ class SalesPersonViewSet(ModelViewSet):
         'phone',
         'email',
     ]
+
+
+# Company viewset
+
+class CompanyViewSet(ModelViewSet):
+    queryset = Company.objects.all()
+    serializer_class = CompanySerializer

@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import TokenRefreshView
 
 from api.services.Report_Excel.Hastag import export_hastag_report
 
@@ -28,6 +29,7 @@ router.register(r'sales-persons', SalesPersonViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('login/', login_view),
+    path("refresh/", TokenRefreshView.as_view()),
     path('create-user/', create_user),
     path(
         "reports/hastag/",

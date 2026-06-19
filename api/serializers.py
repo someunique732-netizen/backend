@@ -164,3 +164,9 @@ class OrderReadSerializer(serializers.ModelSerializer):
     def get_final_amount(self, obj):
         return obj.final_amount()
 
+#company serializer
+
+class CompanySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
+        fields = "__all__"

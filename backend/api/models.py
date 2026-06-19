@@ -1,6 +1,8 @@
 from django.db import models
 from decimal import Decimal
 from django.utils import timezone
+from django.contrib.auth.models import User
+
 
 
 # 👤 CUSTOMER
@@ -127,11 +129,21 @@ class OrderItem(models.Model):
 
 # 👨‍💼 SALES PERSON
 class SalesPerson(models.Model):
+    
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="salesperson"
+    )
+    
     ROLE_CHOICES = [
         ('admin', 'Admin'),
         ('manager', 'Manager'),
         ('sales', 'Sales'),
     ]
+
 
     full_name = models.CharField(max_length=100)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='sales')
@@ -145,3 +157,4 @@ class SalesPerson(models.Model):
 
     def __str__(self):
         return self.full_name
+

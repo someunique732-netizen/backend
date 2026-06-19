@@ -1,7 +1,10 @@
+from urllib import request
+
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -72,6 +75,8 @@ class CouponViewSet(ModelViewSet):
 # ================= ORDER =================
 class OrderViewSet(ModelViewSet):
 
+    permission_classes = [IsAuthenticated]
+
     queryset = Order.objects.select_related(
         'customer',
         'coupon',
@@ -128,6 +133,16 @@ class OrderViewSet(ModelViewSet):
             "total_orders": total_orders,
             "total_sales": total_sales,
         })
+    
+    def perform_create(self, serializer):
+
+        salesperson = SalesPerson.objects.filter(
+            user=request.user
+        ).first()
+
+        serializer.save(
+            salesperson=salesperson
+        )
 
 
 # ================= SALES PERSON =================
