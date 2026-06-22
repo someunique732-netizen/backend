@@ -170,3 +170,23 @@ class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = "__all__"
+
+
+
+class StockLogSerializer(serializers.ModelSerializer):
+    variant_name = serializers.CharField(source='variant.item.item_name', read_only=True)
+    sku          = serializers.CharField(source='variant.sku', read_only=True)
+    performed_by_name = serializers.CharField(source='performed_by.full_name', read_only=True)
+
+    class Meta:
+        model  = StockLog
+        fields = '__all__'
+        read_only_fields = ['stock_after', 'created_at']
+
+
+class StockAdjustSerializer(serializers.Serializer):
+    """Write-only: used for manual restock and correction endpoints."""
+    variant         = serializers.PrimaryKeyRelatedField(queryset=ItemVariant.objects.all())
+    quantity_change = serializers.IntegerField()          # positive or negative
+    reason          = serializers.ChoiceField(choices=['restock', 'correction'])
+    note            = serializers.CharField(required=False, allow_blank=True)

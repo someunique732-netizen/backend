@@ -14,7 +14,8 @@ from .viewsets import (
     OrderViewSet,
     CouponViewSet,
     SalesPersonViewSet,
-    CompanyViewSet
+    CompanyViewSet,
+    StockLogViewSet
 )
 
 from .views import login_view, create_user , dashboard, monthly_revenue
@@ -29,6 +30,7 @@ router.register(r'variants', ItemVariantViewSet)
 router.register(r'orders', OrderViewSet)
 router.register(r'coupons', CouponViewSet)
 router.register(r'sales-persons', SalesPersonViewSet)
+router.register(r'stock-logs', StockLogViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

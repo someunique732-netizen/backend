@@ -1,46 +1,41 @@
+from ..models import Order, OrderItem, StockLog
+from rest_framework.exceptions import ValidationError
 from django.db import transaction
-from ..models import Order, OrderItem, Item
-
 
 class OrderService:
 
     @staticmethod
     @transaction.atomic
     def create_order(validated_data):
-
-        customer = validated_data['customer']
-        items = validated_data['items']
-
-        order = Order.objects.create(
-            customer=customer,
-            delivery_charge=validated_data.get('delivery_charge', 0),
-            paid_amount=validated_data.get('paid_amount', 0),
-            coupon=validated_data.get('coupon', None)
-        )
+        items_data = validated_data.pop('items')
+        order = Order.objects.create(**validated_data)
 
         order_items = []
+        for i in items_data:
+            variant = i['variant']
+            qty     = i['quantity']
 
-        for i in items:
-
-            variant = i["variant"]
-
-            if variant.stock < i["quantity"]:
-                raise Exception(
-                    f"Not enough stock for {variant.sku}"
+            if variant.stock < qty:
+                raise ValidationError(
+                    f"Not enough stock for '{variant.sku}' "
+                    f"(available: {variant.stock}, requested: {qty})"
                 )
 
-            variant.stock -= i["quantity"]
+            variant.stock -= qty
             variant.save()
 
-            order_items.append(
-                OrderItem(
-                    order=order,
-                    variant=variant,
-                    quantity=i["quantity"],
-                    price=variant.item.selling_price
-                )
+            StockLog.objects.create(
+                variant         = variant,
+                quantity_change = -qty,
+                reason          = 'order',
+                note            = f'Order #{order.id}',
+                stock_after     = variant.stock,
             )
 
-        OrderItem.objects.bulk_create(order_items)
+            order_items.append(OrderItem(
+                order=order, variant=variant,
+                quantity=qty, price=variant.item.selling_price,
+            ))
 
+        OrderItem.objects.bulk_create(order_items)
         return order

@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 🔐 SECURITY
 SECRET_KEY = 'django-insecure-3ozw%r2pqxqg3-x^$)u8o&ei1rme)k8%ymyv@wcq'
-DEBUG =  "True"
+DEBUG = "True"
 
 ALLOWED_HOSTS = ['*']
 
@@ -22,13 +22,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_filters',
-    "rest_framework_simplejwt.token_blacklist",
 
     # third-party
     "rest_framework_simplejwt",
     'rest_framework',
     'corsheaders',
+    'django_filters',
 
     # local app
     'api',
@@ -48,7 +47,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    
 ]
 
 
@@ -78,23 +76,18 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # 🗄 DATABASE
 
 
-database_url = os.environ.get("DATABASE_URL")
-
-if database_url:
-    DATABASES = {
-        "default": dj_database_url.parse(
-            database_url,
-            conn_max_age=600,
-            ssl_require=True,
-        )
+#DATABASES = {
+  #  "default": dj_database_url.config(
+   #     conn_max_age=600,
+   #     ssl_require=True
+   # )
+#} 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
+}
 
 # 🔐 PASSWORD VALIDATION
 AUTH_PASSWORD_VALIDATORS = [
@@ -111,23 +104,19 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ),
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend'
-    ]
-}
+     'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    )
 
+}
 
 
 # 🔑 SIMPLE JWT
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
-
-    # Important
-    "ROTATE_REFRESH_TOKENS": True,
-    "BLACKLIST_AFTER_ROTATION": True,
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
@@ -161,6 +150,3 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
 
 ]
-
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"

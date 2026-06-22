@@ -1,15 +1,63 @@
-from urllib import request
-
+from django.db.models import Sum, F
+from decimal import Decimal
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
+from django.db import transaction
+
 
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import *
 from .serializers import *
+from .permissions import IsAdminOrManager
+
+
+#StockLog viewset
+class StockLogViewSet(ModelViewSet):
+    queryset = StockLog.objects.select_related(
+        'variant__item', 'performed_by'
+    ).all()
+
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_fields = ['variant', 'reason']
+    search_fields    = ['variant__sku', 'variant__item__item_name', 'note']
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return StockAdjustSerializer
+        return StockLogSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'destroy']:
+            return [IsAdminOrManager()]
+        return super().get_permissions()
+
+    http_method_names = ['get', 'post', 'head', 'options']  # no PUT/PATCH on logs
+
+    def create(self, request, *args, **kwargs):
+        serializer = StockAdjustSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        data    = serializer.validated_data
+        variant = data['variant']
+        delta   = data['quantity_change']
+
+        variant.stock += delta
+        variant.save()
+
+        log = StockLog.objects.create(
+            variant         = variant,
+            quantity_change = delta,
+            reason          = data['reason'],
+            note            = data.get('note', ''),
+            performed_by    = getattr(request.user, 'salesperson', None),
+            stock_after     = variant.stock,
+        )
+
+        return Response(StockLogSerializer(log).data, status=status.HTTP_201_CREATED)
 
 
 # ================= CUSTOMER =================
@@ -165,28 +213,36 @@ class OrderViewSet(ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def cancel_order(self, request, pk=None):
+        
         order = self.get_object()
 
-        for item in order.items.all():
-            variant = item.variant
-            variant.stock += item.quantity
-            variant.save()
+        with transaction.atomic():
+            for item in order.items.all():
+                variant = item.variant
+                variant.stock += item.quantity
+                variant.save()
 
-        order.delete()
+                StockLog.objects.create(
+                    variant         = variant,
+                    quantity_change = +item.quantity,
+                    reason          = 'cancellation',
+                    note            = f'Order #{order.id} cancelled',
+                    stock_after     = variant.stock,
+                )
 
-        return Response(
-            {"message": "Order cancelled successfully"},
-            status=status.HTTP_200_OK
-        )
+            order.delete()
+
+        return Response({"message": "Order cancelled successfully"})
+        
+    
 
     @action(detail=False, methods=['get'])
     def summary(self, request):
         total_orders = Order.objects.count()
 
-        total_sales = sum(
-            order.total_amount()
-            for order in Order.objects.all()
-        )
+        total_sales = OrderItem.objects.aggregate(
+            total=Sum(F('quantity') * F('price'))
+        )['total'] or 0
 
         return Response({
             "total_orders": total_orders,

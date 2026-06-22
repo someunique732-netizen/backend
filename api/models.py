@@ -1,6 +1,7 @@
 from django.db import models
 from decimal import Decimal
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 
 # 👤 CUSTOMER
@@ -125,6 +126,14 @@ class OrderItem(models.Model):
 
 # 👨‍💼 SALES PERSON
 class SalesPerson(models.Model):
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+     
     ROLE_CHOICES = [
         ('admin', 'Admin'),
         ('manager', 'Manager'),
@@ -174,3 +183,26 @@ class Company(models.Model):
         blank=True,
         null=True
     )
+
+#Stock Log
+class StockLog(models.Model):
+    REASON_CHOICES = [
+        ('restock',      'Manual restock'),
+        ('order',        'Order placed'),
+        ('cancellation', 'Order cancelled'),
+        ('correction',   'Manual correction'),
+    ]
+
+    variant       = models.ForeignKey(ItemVariant, on_delete=models.CASCADE, related_name='stock_logs')
+    quantity_change = models.IntegerField()          # positive = stock added, negative = stock removed
+    reason        = models.CharField(max_length=20, choices=REASON_CHOICES)
+    note          = models.TextField(blank=True, null=True)
+    performed_by  = models.ForeignKey(SalesPerson, on_delete=models.SET_NULL, null=True, blank=True)
+    stock_after   = models.IntegerField()            # snapshot so history is self-contained
+    created_at    = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.variant.sku} | {self.quantity_change:+d} | {self.reason}"

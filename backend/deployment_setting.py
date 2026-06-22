@@ -7,9 +7,8 @@ from .settings import BASE_DIR
 ALLOWED_HOSTS = [os.environ.get('RENDER_EXTERNAL_HOSTNAME')]
 CSRF_TRUSTED_ORIGINS = [f"https://"+os.environ.get('RENDER_EXTERNAL_HOSTNAME')]
 
-DEBUG = False
+DEBUG = True
 SECRET_KEY = os.environ.get('SECRET_KEY')
-
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -25,11 +24,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "https://frontend-r0u4.onrender.com",]
-
-
-
+#CORS_ALLOWED_ORIGINS = [
+ #    "https://your-frontend-domain.com",]
 
 STORAGES = {
     "default": {
